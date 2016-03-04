@@ -1,0 +1,12 @@
+body {
+  font-family: sans-serif;
+}
+
+.content,
+.projects-list {
+  display: table-cell;
+}
+
+.content {
+  padding-left: 1rem;
+}
