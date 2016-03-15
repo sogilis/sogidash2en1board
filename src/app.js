@@ -3,7 +3,8 @@
 /**
  * Components
  */
-const DashApp = React.createClass({
+
+var DashApp = React.createClass({
   render: function() {
     return (
       <div className="container">
@@ -12,6 +13,7 @@ const DashApp = React.createClass({
         <Sidebar />
 
         <div className="content">
+          <h2>{this.props.currentProject}</h2>
           <PeopleCharts />
           <MonthChart />
         </div>
@@ -20,15 +22,59 @@ const DashApp = React.createClass({
   }
 });
 
-const Sidebar = React.createClass({
+DashApp = ReactRedux.connect(
+  (state) => {
+    var currentProject = 'Aucun projet sélectionné';
+    if (state.currentProject != null) {
+      currentProject = state.currentProject;
+    }
+    return { currentProject }
+  }
+)(DashApp);
+
+const ProjectsList = React.createClass({
+  onProjectChange: function(e) {
+    e.preventDefault();
+    this.props.changeProject(e.target.textContent);
+  },
+
+  projectList: function() {
+    return this.props.projects.map((projectName) => {
+      return (
+        <li key={projectName}>
+          <a href="" onClick={this.onProjectChange}>{projectName}</a>
+        </li>
+      );
+    });
+  },
+
   render: function() {
     return (
       <div className="projects-list">
-        Nous n'avons jamais bossé sur aucun projet
+        <h2>Projets</h2>
+        <ul>
+          {this.projectList()}
+        </ul>
       </div>
     );
   }
 });
+
+const Sidebar = ReactRedux.connect(
+  (state) => {
+    return {
+      projects: state.projects
+    }
+  },
+  (dispatch) => {
+    return {
+      changeProject: (project) => dispatch({
+        type: 'CHANGE_PROJECT',
+        project,
+      })
+    }
+  }
+)(ProjectsList);
 
 const PeopleCharts = React.createClass({
   render: function() {
@@ -51,9 +97,60 @@ const MonthChart = React.createClass({
 });
 
 /**
+ * API fetching
+ */
+function fetchData(dispatch) {
+  $.ajax({
+    url: DashEndpoint,
+    dataType: 'json',
+    cache: false,
+    success: (data) => dispatch({
+      type: 'RECEIVE_DATA',
+      data
+    }),
+    error: (xhr, status, err) => console.error('Failure', status, err.toString())
+  });
+}
+
+/**
+ * Reducers
+ */
+const appReducer = Redux.combineReducers({
+  projects: function(state = [], action){
+    if (action.type == 'RECEIVE_DATA') {
+      var projects = {};
+      for (var occ of action.data.occupations) {
+        projects[occ.Project] = true;
+      }
+      return Object.keys(projects);
+    }
+    return state
+  },
+
+  currentProject: function(state = null, action) {
+    if (action.type == 'CHANGE_PROJECT') {
+      return action.project;
+    }
+    return state;
+  },
+});
+
+/**
  * Configure store
  */
-const store = Redux.createStore(() => {});
+function thunkMiddleware({ dispatch, getState }) {
+  return next => action =>
+    typeof action === 'function' ?
+      action(dispatch, getState) :
+      next(action);
+}
+
+const createStoreWithMiddleware = Redux.applyMiddleware(
+  thunkMiddleware
+)(Redux.createStore);
+const store = createStoreWithMiddleware(appReducer);
+
+store.dispatch(fetchData);
 
 const Provider = ReactRedux.Provider;
 ReactDOM.render(
