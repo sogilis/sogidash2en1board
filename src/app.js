@@ -7,10 +7,16 @@
 const DashApp = React.createClass({
   render: function() {
     return (
-      <div className="container">
-        <h1>SogiDash<sub>2 en 1</sub> Board</h1>
-        <Sidebar />
-        <Content />
+      <div className="sogidash-app">
+        <nav className="navbar navbar navbar-light navbar-static-top bd-navbar">
+          <a className="navbar-brand" href="#">SogiDash<sub>2 en 1</sub> Board</a>
+        </nav>
+        <div className="container-fluid">
+          <div className="row">
+            <Sidebar />
+            <Content />
+          </div>
+        </div>
       </div>
     );
   }
@@ -20,15 +26,15 @@ var Content = React.createClass({
   render: function() {
     if (this.props.currentProject === null) {
       return (
-        <div className="content">
+        <div className="col-md-10">
           <p className="alert alert-info">Veuillez sélectionner un projet</p>
         </div>
       );
     }
 
     return (
-      <div className="content">
-        <h2>{this.props.currentProject}</h2>
+      <div className="col-md-10">
+        <h1>{this.props.currentProject}</h1>
         <PeopleCharts />
         <MonthChart />
       </div>
@@ -52,9 +58,13 @@ const ProjectsList = React.createClass({
 
   projectList: function() {
     return this.props.projects.map((projectName) => {
+      var isActive = projectName == this.props.currentProject;
+      var navLinkClass = 'nav-link';
+      navLinkClass += isActive ? ' active' : '';
+
       return (
-        <li key={projectName}>
-          <a href="" onClick={this.onProjectChange}>{projectName}</a>
+        <li className="nav-item" key={projectName}>
+          <a className={navLinkClass} href="" onClick={this.onProjectChange}>{projectName}</a>
         </li>
       );
     });
@@ -62,9 +72,9 @@ const ProjectsList = React.createClass({
 
   render: function() {
     return (
-      <div className="projects-list">
+      <div className="col-md-2 projects-list">
         <h2>Projets</h2>
-        <ul>
+        <ul className="nav nav-pills nav-stacked">
           {this.projectList()}
         </ul>
       </div>
@@ -75,7 +85,8 @@ const ProjectsList = React.createClass({
 const Sidebar = ReactRedux.connect(
   (state) => {
     return {
-      projects: state.projects
+      projects: state.projects,
+      currentProject: state.currentProject,
     }
   },
   (dispatch) => {
@@ -91,7 +102,7 @@ const Sidebar = ReactRedux.connect(
 const PeopleCharts = React.createClass({
   render: function() {
     return (
-      <div className="people-charts">
+      <div className="people-charts alert alert-info">
         Personne n'a jamais bossé sur ce projet
       </div>
     );
@@ -101,7 +112,7 @@ const PeopleCharts = React.createClass({
 const MonthChart = React.createClass({
   render: function() {
     return (
-      <div className="month-chart">
+      <div className="month-chart alert alert-info">
         Il n'y a aucun graphique à montrer pour ce projet
       </div>
     );
