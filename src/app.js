@@ -138,12 +138,15 @@ function fetchData(dispatch) {
 /**
  * Reducers
  */
+
+const DEFAULT_PROJECT_NAME = 'Projet sans nom';
 const appReducer = Redux.combineReducers({
   projects: function(state = [], action){
     if (action.type == 'RECEIVE_DATA') {
       var projects = {};
       for (var occ of action.data.occupations) {
-        projects[occ.Project] = true;
+        var projectName = occ.Project === '' ? DEFAULT_PROJECT_NAME : occ.Project;
+        projects[projectName] = true;
       }
       return Object.keys(projects);
     }
