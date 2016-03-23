@@ -9,7 +9,7 @@ const DashApp = React.createClass({
     return (
       <div className="sogidash-app">
         <nav className="navbar navbar navbar-light navbar-static-top bd-navbar">
-          <a className="navbar-brand" href="#">SogiDash<sub>2 en 1</sub> Board</a>
+          <a className="navbar-brand" href="index.html">SogiDash<sub>2 en 1</sub> Board</a>
         </nav>
         <div className="container-fluid">
           <div className="row">
