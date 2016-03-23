@@ -98,7 +98,7 @@ const ProjectsList = React.createClass({
 const Sidebar = ReactRedux.connect(
   (state) => {
     return {
-      projects: state.projects,
+      projects: state.projects.sort(),
       currentProject: state.currentProject,
       isFetchingData: state.isFetchingData,
     }
@@ -156,6 +156,15 @@ PeopleCharts = ReactRedux.connect(
     var currentPeople = [];
     if (state.currentProject !== null) {
       currentPeople = state.peopleTimeReportByProject[state.currentProject];
+      currentPeople.sort((person1, person2) => {
+        if (person1.name > person2.name) {
+          return 1;
+        }
+        if (person1.name < person2.name) {
+          return -1;
+        }
+        return 0;
+      });
     }
 
     return { currentPeople };
