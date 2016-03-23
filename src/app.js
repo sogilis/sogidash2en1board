@@ -181,7 +181,7 @@ var MonthChart = React.createClass({
 
     this.chart = new Chart(ctx).Bar(data, {
       scaleOverride : true,
-      scaleSteps : 22,
+      scaleSteps : this.props.peopleNumberOnProject,
       scaleStepWidth : 1,
       scaleStartValue : 0
     });
@@ -232,10 +232,12 @@ MonthChart = ReactRedux.connect(
         data[day.getDate() - 1] += dayTimeReport[days[i]];
       }
     }
+    var peopleNumberOnProject = state.peopleTimeReportByProject[state.currentProject].length;
 
     return {
       labels,
       data,
+      peopleNumberOnProject,
     };
   }
 )(MonthChart);
