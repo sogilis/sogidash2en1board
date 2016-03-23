@@ -99,15 +99,55 @@ const Sidebar = ReactRedux.connect(
   }
 )(ProjectsList);
 
-const PeopleCharts = React.createClass({
+var PeopleCharts = React.createClass({
+  peopleList: function() {
+    return this.props.currentPeople.map((person) => {
+      var progressValue = person.duration * 100/30;
+
+      return (
+        <div className="row">
+          <div className="col-md-1">
+            <strong>{person.name}</strong>
+          </div>
+          <div className="col-md-1 text-muted">
+            {person.duration} jours
+          </div>
+          <div className="col-md-10">
+            <progress className="progress progress-info" value={progressValue} max="100">{person.duration} jours</progress>
+          </div>
+        </div>
+      );
+    });
+  },
+
   render: function() {
+    if (this.props.currentPeople.length <= 0) {
+      return (
+        <div className="alert alert-info">
+          Personne n’a jamais bossé sur ce projet
+        </div>
+      );
+    }
+
     return (
-      <div className="people-charts alert alert-info">
-        Personne n'a jamais bossé sur ce projet
-      </div>
+      <ul className="list-group">
+        {this.peopleList()}
+      </ul>
     );
   }
 });
+
+PeopleCharts = ReactRedux.connect(
+  (state) => {
+    var currentPeople = [];
+    if (state.currentProject !== null) {
+      console.log(state.peopleTimeReportByProject);
+      currentPeople = state.peopleTimeReportByProject[state.currentProject];
+    }
+
+    return { currentPeople };
+  }
+)(PeopleCharts);
 
 const MonthChart = React.createClass({
   render: function() {
@@ -139,7 +179,7 @@ function fetchData(dispatch) {
  * Reducers
  */
 
-const DEFAULT_PROJECT_NAME = 'Projet sans nom';
+const DEFAULT_PROJECT_NAME = 'OFF';
 const appReducer = Redux.combineReducers({
   projects: function(state = [], action){
     if (action.type == 'RECEIVE_DATA') {
@@ -151,6 +191,36 @@ const appReducer = Redux.combineReducers({
       return Object.keys(projects);
     }
     return state
+  },
+
+  peopleTimeReportByProject: function(state = {}, action) {
+    if (action.type == 'RECEIVE_DATA') {
+      var timeReport = {};
+      for (var occ of action.data.occupations) {
+        var projectName = occ.Project === '' ? DEFAULT_PROJECT_NAME : occ.Project;
+        var personName = occ.Person;
+        var duration = occ.Duration;
+
+        if (timeReport[projectName] === undefined) {
+          timeReport[projectName] = [];
+        }
+
+        var found = false;
+        for (var i = 0 ; i < timeReport[projectName].length ; i++) {
+          if (timeReport[projectName][i].name == personName) {
+            timeReport[projectName][i].duration += duration;
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          timeReport[projectName].push({ name: personName, duration: duration });
+        }
+      }
+      return timeReport;
+    }
+    return state;
   },
 
   currentProject: function(state = null, action) {
