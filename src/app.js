@@ -18,6 +18,14 @@ const DashApp = React.createClass({
 
 var Content = React.createClass({
   render: function() {
+    if (this.props.currentProject === null) {
+      return (
+        <div className="content">
+          <p className="alert alert-info">Veuillez sélectionner un projet</p>
+        </div>
+      );
+    }
+
     return (
       <div className="content">
         <h2>{this.props.currentProject}</h2>
@@ -30,11 +38,9 @@ var Content = React.createClass({
 
 Content = ReactRedux.connect(
   (state) => {
-    var currentProject = 'Aucun projet sélectionné';
-    if (state.currentProject != null) {
-      currentProject = state.currentProject;
+    return {
+      currentProject: state.currentProject
     }
-    return { currentProject }
   }
 )(Content);
 
