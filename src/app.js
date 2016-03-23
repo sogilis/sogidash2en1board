@@ -155,7 +155,6 @@ PeopleCharts = ReactRedux.connect(
   (state) => {
     var currentPeople = [];
     if (state.currentProject !== null) {
-      console.log(state.peopleTimeReportByProject);
       currentPeople = state.peopleTimeReportByProject[state.currentProject];
     }
 
@@ -163,15 +162,83 @@ PeopleCharts = ReactRedux.connect(
   }
 )(PeopleCharts);
 
-const MonthChart = React.createClass({
+var MonthChart = React.createClass({
+  updateChart: function() {
+    var ctx = this.refs.monthChart.getContext("2d");
+    var data = {
+      labels: this.props.labels,
+      datasets: [
+        {
+          label: "My First dataset",
+          fillColor: "rgba(151,187,205,0.5)",
+          strokeColor: "rgba(151,187,205,0.8)",
+          highlightFill: "rgba(151,187,205,0.75)",
+          highlightStroke: "rgba(151,187,205,1)",
+          data: this.props.data,
+        },
+      ]
+    };
+
+    this.chart = new Chart(ctx).Bar(data, {
+      scaleOverride : true,
+      scaleSteps : 22,
+      scaleStepWidth : 1,
+      scaleStartValue : 0
+    });
+  },
+
+  componentDidMount: function() {
+    this.updateChart();
+  },
+
+  componentDidUpdate: function() {
+    this.chart.destroy();
+    this.updateChart();
+  },
+
   render: function() {
+    if (this.props.data.length <= 0) {
+      return (
+        <div className="month-chart alert alert-info">
+          Il n’y a aucun graphique à montrer pour ce projet
+        </div>
+      );
+    }
+
     return (
-      <div className="month-chart alert alert-info">
-        Il n’y a aucun graphique à montrer pour ce projet
-      </div>
+      <canvas ref="monthChart"></canvas>
     );
   }
 });
+
+MonthChart = ReactRedux.connect(
+  (state) => {
+    var labels = [];
+    for (var i = 1; i <= 31; i++) {
+      labels.push(i);
+    }
+    var data = [];
+
+    if (state.currentProject !== null) {
+      var dayTimeReport = state.dayTimeReportByProject[state.currentProject];
+      var days = Object.keys(dayTimeReport);
+
+      for (var i = 0; i <= 31; i++) {
+        data.push(0);
+      }
+
+      for (var i = 0; i < days.length; i++) {
+        var day = new Date(days[i]);
+        data[day.getDate() - 1] += dayTimeReport[days[i]];
+      }
+    }
+
+    return {
+      labels,
+      data,
+    };
+  }
+)(MonthChart);
 
 /**
  * API fetching
@@ -233,6 +300,28 @@ const appReducer = Redux.combineReducers({
         if (!found) {
           timeReport[projectName].push({ name: personName, duration: duration });
         }
+      }
+      return timeReport;
+    }
+    return state;
+  },
+
+  dayTimeReportByProject: function(state = {}, action) {
+    if (action.type == 'RECEIVE_DATA') {
+      var timeReport = {};
+      for (var occ of action.data.occupations) {
+        var projectName = occ.Project === '' ? DEFAULT_PROJECT_NAME : occ.Project;
+        var date = occ.Date;
+        var duration = occ.Duration;
+
+        if (timeReport[projectName] === undefined) {
+          timeReport[projectName] = [];
+        }
+        if (timeReport[projectName][date] === undefined) {
+          timeReport[projectName][date] = 0;
+        }
+
+        timeReport[projectName][date] += duration;
       }
       return timeReport;
     }
