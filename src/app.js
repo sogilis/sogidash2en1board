@@ -4,25 +4,31 @@
  * Components
  */
 
-var DashApp = React.createClass({
+const DashApp = React.createClass({
   render: function() {
     return (
       <div className="container">
         <h1>SogiDash<sub>2 en 1</sub> Board</h1>
-
         <Sidebar />
-
-        <div className="content">
-          <h2>{this.props.currentProject}</h2>
-          <PeopleCharts />
-          <MonthChart />
-        </div>
+        <Content />
       </div>
     );
   }
 });
 
-DashApp = ReactRedux.connect(
+var Content = React.createClass({
+  render: function() {
+    return (
+      <div className="content">
+        <h2>{this.props.currentProject}</h2>
+        <PeopleCharts />
+        <MonthChart />
+      </div>
+    );
+  }
+});
+
+Content = ReactRedux.connect(
   (state) => {
     var currentProject = 'Aucun projet sélectionné';
     if (state.currentProject != null) {
@@ -30,7 +36,7 @@ DashApp = ReactRedux.connect(
     }
     return { currentProject }
   }
-)(DashApp);
+)(Content);
 
 const ProjectsList = React.createClass({
   onProjectChange: function(e) {
