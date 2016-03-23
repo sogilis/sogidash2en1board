@@ -153,7 +153,7 @@ const MonthChart = React.createClass({
   render: function() {
     return (
       <div className="month-chart alert alert-info">
-        Il n'y a aucun graphique à montrer pour ce projet
+        Il n’y a aucun graphique à montrer pour ce projet
       </div>
     );
   }
