@@ -71,6 +71,19 @@ const ProjectsList = React.createClass({
   },
 
   render: function() {
+    if (this.props.isFetchingData) {
+      return (
+        <div className="col-md-2 projects-list-loading">
+          <p className="text-muted">Chargement des projets…</p>
+          <div className="loader-inner ball-scale-ripple-multiple">
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="col-md-2 projects-list">
         <h2>Projets</h2>
@@ -87,6 +100,7 @@ const Sidebar = ReactRedux.connect(
     return {
       projects: state.projects,
       currentProject: state.currentProject,
+      isFetchingData: state.isFetchingData,
     }
   },
   (dispatch) => {
@@ -167,11 +181,13 @@ function fetchData(dispatch) {
     url: DashEndpoint,
     dataType: 'json',
     cache: false,
+    beforeSend: () => dispatch({ type: 'START_FETCH_DATA' }),
     success: (data) => dispatch({
       type: 'RECEIVE_DATA',
       data
     }),
-    error: (xhr, status, err) => console.error('Failure', status, err.toString())
+    error: (xhr, status, err) => console.error('Failure', status, err.toString()),
+    complete: () => dispatch({ type: 'FINISH_FETCH_DATA' }),
   });
 }
 
@@ -226,6 +242,15 @@ const appReducer = Redux.combineReducers({
   currentProject: function(state = null, action) {
     if (action.type == 'CHANGE_PROJECT') {
       return action.project;
+    }
+    return state;
+  },
+
+  isFetchingData: function(state = false, action) {
+    if (action.type == 'START_FETCH_DATA') {
+      return true;
+    } else if(action.type == 'FINISH_FETCH_DATA') {
+      return false;
     }
     return state;
   },
